@@ -5,7 +5,7 @@ init -990 python in mas_submod_utils:
         author="multimokia",
         name="All Gen Scrollable Menus",
         description="A submod which converts all menus to gen-scrollable-menus so Monika's face is never hidden.",
-        version="1.0.1",
+        version="1.0.2",
         settings_pane="gsm_settings",
         version_updates={
             "multimokia_all_gen_scrollable_menus_v1_0_0": "multimokia_all_gen_scrollable_menus_v1_0_2",
