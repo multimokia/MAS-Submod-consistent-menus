@@ -1,4 +1,4 @@
-default persistent._gsm_use_talk_choice = False
+default persistent._gsm_menu_style = gsm_utils.TYPE_SCROLLABLE
 
 init -990 python in mas_submod_utils:
     Submod(
@@ -6,9 +6,26 @@ init -990 python in mas_submod_utils:
         name="All Gen Scrollable Menus",
         description="A submod which converts all menus to gen-scrollable-menus so Monika's face is never hidden.",
         version="1.0.1",
-        version_updates=dict(),
-        settings_pane="gsm_settings"
+        settings_pane="gsm_settings",
+        version_updates={
+            "multimokia_all_gen_scrollable_menus_v1_0_0": "multimokia_all_gen_scrollable_menus_v1_0_2",
+            "multimokia_all_gen_scrollable_menus_v1_0_1": "multimokia_all_gen_scrollable_menus_v1_0_2"
+        }
     )
+
+#START: Update scripts
+label multimokia_all_gen_scrollable_menus_v1_0_0(version="v1_0_0"):
+    return
+
+label multimokia_all_gen_scrollable_menus_v1_0_1(version="v1_0_1"):
+    return
+
+label multimokia_all_gen_scrollable_menus_v1_0_2(version="v1_0_2"):
+    python:
+        safeDel("_gsm_use_talk_choice")
+        safeDel("_gsm_unobstructed_choice")
+    return
+
 
 #START: Settings Pane
 screen gsm_settings():
@@ -21,10 +38,91 @@ screen gsm_settings():
             style_prefix "check"
             box_wrap False
 
-            textbutton "Use Talk Choice Screen":
-                action ToggleField(persistent, "_gsm_use_talk_choice")
-                selected persistent._gsm_use_talk_choice
+            textbutton "Use Gen Scrollable Menu":
+                action SetField(persistent, "_gsm_menu_style", gsm_utils.TYPE_SCROLLABLE)
+                selected persistent._gsm_menu_style == gsm_utils.TYPE_SCROLLABLE
 
+            textbutton "Use Talk Choice Screen":
+                action SetField(persistent, "_gsm_menu_style", gsm_utils.TYPE_CHOICE_MENU)
+                selected persistent._gsm_menu_style == gsm_utils.TYPE_CHOICE_MENU
+
+            textbutton "Use Unobstructed Choice Screen":
+                action SetField(persistent, "_gsm_menu_style", gsm_utils.TYPE_UNOBSTRUCTED_CHOICE_MENU)
+                selected persistent._gsm_menu_style == gsm_utils.TYPE_UNOBSTRUCTED_CHOICE_MENU
+
+init -1 python in gsm_utils:
+    import store
+
+    TYPE_SCROLLABLE = "mas_gen_scrollable_menu"
+    TYPE_CHOICE_MENU = "talk_choice"
+    TYPE_UNOBSTRUCTED_CHOICE_MENU = "unobstructed_choice"
+
+    def parse_to_gen_scrollable(items):
+        """
+        Converts the list of items to a 4 part tuple used for the mas_gen_scrollable_menu
+
+        IN:
+            items - a tuple of (label, value) representing menuitems
+
+        OUT:
+            tuple - (label, value, False, False) representing menuitems in mas_gen_scrollable_menu format
+        """
+        #Convert items to the 4 part tuple
+        return [
+            (x[0], x[1], False, False)
+            for x in items
+        ]
+
+    def parse_to_standard_renpy_menu(items):
+        """
+        Converts the list of items to the standard list of MenuEntry objects renpy uses for menus
+
+        IN:
+            items - a tuple of (label, value) representing menuitems
+
+        OUT:
+            list of MenuEntry objects representing menuitems in standard renpy format
+        """
+        menu_items = list()
+
+        #Get the location of the menu as MenuEntries need it
+        location = renpy.game.context().current
+
+        #And now make a formatted list of menu_items
+        for (label, value) in items:
+            if value is not None:
+                action = renpy.ui.ChoiceReturn(label, value, location)
+                chosen = action.get_chosen()
+
+            else:
+                action = None
+                chosen = False
+
+            if renpy.config.choice_screen_chosen:
+                me = renpy.MenuEntry((label, action, chosen))
+            else:
+                me = renpy.MenuEntry((label, action))
+
+            me.caption = label
+            me.action = action
+            me.chosen = chosen
+            menu_items.append(me)
+
+        return menu_items
+
+    #Now build maps for these
+    TYPE_PARSE_MAP = {
+        TYPE_SCROLLABLE: parse_to_gen_scrollable,
+        TYPE_CHOICE_MENU: parse_to_standard_renpy_menu,
+        TYPE_UNOBSTRUCTED_CHOICE_MENU: parse_to_standard_renpy_menu,
+    }
+
+    TYPE_KWARGS_MAP = {
+        TYPE_SCROLLABLE: {
+            "display_area": store.mas_ui.SCROLLABLE_MENU_TXT_AREA,
+            "scroll_align": store.mas_ui.SCROLLABLE_MENU_XALIGN
+        }
+    }
 
 init 900 python:
     def menu_override(items, set_expr):
@@ -67,10 +165,15 @@ init 900 python:
             set = None
 
         #Prep before showing the menu
-        renpy.show("monika", at_list=[t21])
+        if (
+            renpy.showing("monika")
+            and persistent._gsm_menu_style != gsm_utils.TYPE_UNOBSTRUCTED_CHOICE_MENU
+        ):
+            renpy.show("monika", at_list=[t21])
 
-        #Get last line
-        last_line = _history_list[-1].what
+
+        #Get last line if it exists
+        last_line = _history_list[-1].what if _history_list else ""
 
         #Handle the textbox show to keep the question up during the menu
         if last_line.endswith("{nw}"):
@@ -83,57 +186,19 @@ init 900 python:
         else:
             _window_hide()
 
-        #If the user wishes to use the talk-choice menu, we'll need to parse the input accordingly
-        if persistent._gsm_use_talk_choice:
-            menu_items = list()
+        #Parse menu items
+        formatted_items = gsm_utils.TYPE_PARSE_MAP[persistent._gsm_menu_style](items)
 
-            #Get the location of the menu as MenuEntries need it
-            location=renpy.game.context().current
-
-            #And now make a formatted list of menu_items
-            for (label, value) in items:
-                if value is not None:
-                    action = renpy.ui.ChoiceReturn(label, value, location)
-                    chosen = action.get_chosen()
-
-                else:
-                    action = None
-                    chosen = False
-
-                if renpy.config.choice_screen_chosen:
-                    me = renpy.MenuEntry((label, action, chosen))
-                else:
-                    me = renpy.MenuEntry((label, action))
-
-                me.caption = label
-                me.action = action
-                me.chosen = chosen
-                menu_items.append(me)
-
-            #Then call the screen for it
-            picked = renpy.call_screen(
-                "talk_choice",
-                items=menu_items
-            )
-
-        #Otherwise, we use the gen scrollable menu
-        else:
-            #Convert items to the 4 part tuple
-            formatted_menuitems = [
-                (x[0], x[1], False, False)
-                for x in items
-            ]
-
-            #And show the screen
-            picked = renpy.call_screen(
-                "mas_gen_scrollable_menu",
-                items=formatted_menuitems,
-                display_area=store.mas_ui.SCROLLABLE_MENU_TXT_AREA,
-                scroll_align=store.mas_ui.SCROLLABLE_MENU_XALIGN
-            )
+        #If the screen takes kwargs, we'll handle that here
+        picked = renpy.call_screen(
+            persistent._gsm_menu_style,
+            items=formatted_items,
+            **gsm_utils.TYPE_KWARGS_MAP.get(persistent._gsm_menu_style, dict())
+        )
 
         #Reset Monika's position
-        renpy.show("monika", at_list=[t11])
+        if renpy.showing("monika"):
+            renpy.show("monika", at_list=[t11])
 
         #Reset the window
         _window_auto = True
@@ -154,3 +219,23 @@ init 900 python:
         return picked
 
     renpy.exports.menu = menu_override
+
+#Unobstructed menu screen and styles
+screen unobstructed_choice(items):
+    style_prefix "unobstructedchoice"
+
+    vbox:
+        for i in items:
+            textbutton i.caption action i.action
+
+
+style unobstructedchoice_vbox is choice_vbox:
+    xcenter 1050
+
+style unobstructedchoice_button is choice_button
+
+style unobstructedchoice_button_dark is choice_button_dark
+
+style unobstructedchoice_button_text is choice_button_text
+
+style unobstructedchoice_button_text_dark is choice_button_text_dark
