@@ -175,6 +175,9 @@ init 900 python:
         #Get last line if it exists
         last_line = _history_list[-1].what if _history_list else ""
 
+        #Local var for use later
+        window_hidden = False
+
         #Handle the textbox show to keep the question up during the menu
         if last_line.endswith("{nw}"):
             renpy.say(m, last_line.replace("{nw}", "{fast}"), interact=False)
@@ -185,6 +188,8 @@ init 900 python:
         #Otherwise no text, and we should hide the textbox instead
         else:
             _window_hide()
+            #Since we set window to hide, we'll need to reset the window to auto after
+            window_hidden = True
 
         #Parse menu items
         formatted_items = gsm_utils.TYPE_PARSE_MAP[persistent._gsm_menu_style](items)
@@ -200,8 +205,9 @@ init 900 python:
         if renpy.showing("monika"):
             renpy.show("monika", at_list=[t11])
 
-        #Reset the window
-        _window_auto = True
+        #Set window to auto again if we hid it
+        if window_hidden:
+            _window_auto = True
 
         #And pop from hist
         if last_line.endswith("{fast}"):
