@@ -26,5 +26,7 @@ This submod replaces the standard Ren'Py menus with your choice of the following
 ##### Sample:
 ![image](https://cdn.discordapp.com/attachments/609579661847953430/734161834810277948/screenshot0213.png)
 
+This submod is compatible with the [Submod Updater Plugin](https://github.com/Booplicate/MAS-Submods-SubmodUpdaterPlugin/releases/latest)! Give it an install to make updating this submod easier.
+
 ### Please report any and all problems in the `issues` tab.
 ###### Thank you

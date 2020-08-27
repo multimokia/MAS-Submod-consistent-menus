@@ -1,7 +1,7 @@
 default persistent._gsm_menu_style = gsm_utils.TYPE_SCROLLABLE
 
 init -990 python in mas_submod_utils:
-    Submod(
+    gsm_submod = Submod(
         author="multimokia",
         name="All Gen Scrollable Menus",
         description="A submod which converts all menus to gen-scrollable-menus so Monika's face is never hidden.",
@@ -12,6 +12,21 @@ init -990 python in mas_submod_utils:
             "multimokia_all_gen_scrollable_menus_v1_0_1": "multimokia_all_gen_scrollable_menus_v1_0_2"
         }
     )
+
+init -989 python in gsm_utils:
+    import store
+
+    #Register the updater if needed
+    if store.mas_submod_utils.isSubmodInstalled("Submod Updater Plugin"):
+        store.sup_utils.SubmodUpdater(
+            submod=store.mas_submod_utils.gsm_submod,
+            user_name="multimokia",
+            repository_name="MAS-Util-Consistent-Menus",
+            tag_formatter=lambda x: x[x.index('_') + 1:],
+            update_dir="",
+            attachment_id=None,
+        )
+
 
 #START: Update scripts
 label multimokia_all_gen_scrollable_menus_v1_0_0(version="v1_0_0"):
@@ -51,8 +66,6 @@ screen gsm_settings():
                 selected persistent._gsm_menu_style == gsm_utils.TYPE_UNOBSTRUCTED_CHOICE_MENU
 
 init -1 python in gsm_utils:
-    import store
-
     TYPE_SCROLLABLE = "mas_gen_scrollable_menu"
     TYPE_CHOICE_MENU = "talk_choice"
     TYPE_UNOBSTRUCTED_CHOICE_MENU = "unobstructed_choice"
