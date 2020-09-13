@@ -9,7 +9,8 @@ init -990 python in mas_submod_utils:
         settings_pane="gsm_settings",
         version_updates={
             "multimokia_all_gen_scrollable_menus_v1_0_0": "multimokia_all_gen_scrollable_menus_v1_0_2",
-            "multimokia_all_gen_scrollable_menus_v1_0_1": "multimokia_all_gen_scrollable_menus_v1_0_2"
+            "multimokia_all_gen_scrollable_menus_v1_0_1": "multimokia_all_gen_scrollable_menus_v1_0_2",
+            "multimokia_all_gen_scrollable_menus_v1_0_2": "multimokia_all_gen_scrollable_menus_v1_0_3"
         }
     )
 
@@ -40,6 +41,8 @@ label multimokia_all_gen_scrollable_menus_v1_0_2(version="v1_0_2"):
         safeDel("_gsm_unobstructed_choice")
     return
 
+label multimokia_all_gen_scrollable_menus_v1_0_3(version="v1_0_3"):
+    return
 
 #START: Settings Pane
 screen gsm_settings():
