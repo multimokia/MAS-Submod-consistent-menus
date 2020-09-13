@@ -1,3 +1,7 @@
+## September 12, 2020 (1.0.4):
+- Allow overrides of user choice for specific labels
+  - This is done to deal with issues where Monika should not move in some labels
+
 ## August 03, 2020 (1.0.3):
 - Fix for changed constants as of the current unstable (build 126), will be carried through MAS 0.11.4
 

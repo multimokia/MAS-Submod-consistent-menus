@@ -27,7 +27,6 @@ init -989 python in gsm_utils:
             attachment_id=None,
         )
 
-
 #START: Update scripts
 label multimokia_all_gen_scrollable_menus_v1_0_0(version="v1_0_0"):
     return
@@ -137,6 +136,11 @@ init -1 python in gsm_utils:
         }
     }
 
+    #This dict holds all the labels which need to force a custom menu type
+    LABEL_MENU_OVERRIDE_MAP = {
+        "mas_bday_surprise_party_reacton_cake": TYPE_UNOBSTRUCTED_CHOICE_MENU
+    }
+
 init 900 python:
     def menu_override(items, set_expr):
         """
@@ -177,10 +181,17 @@ init 900 python:
         else:
             set = None
 
+        #Get the menu style to use in case we need an override
+        menu_type = gsm_utils.LABEL_MENU_OVERRIDE_MAP.get(mas_submod_utils.current_label)
+
+        #If there's no menu override, then we'll fallback to the chosen style
+        if menu_type is None:
+            menu_type = persistent._gsm_menu_style
+
         #Prep before showing the menu
         if (
             renpy.showing("monika")
-            and persistent._gsm_menu_style != gsm_utils.TYPE_UNOBSTRUCTED_CHOICE_MENU
+            and menu_type != gsm_utils.TYPE_UNOBSTRUCTED_CHOICE_MENU
         ):
             renpy.show("monika", at_list=[t21])
 
@@ -205,13 +216,13 @@ init 900 python:
             window_hidden = True
 
         #Parse menu items
-        formatted_items = gsm_utils.TYPE_PARSE_MAP[persistent._gsm_menu_style](items)
+        formatted_items = gsm_utils.TYPE_PARSE_MAP[menu_type](items)
 
         #If the screen takes kwargs, we'll handle that here
         picked = renpy.call_screen(
-            persistent._gsm_menu_style,
+            menu_type,
             items=formatted_items,
-            **gsm_utils.TYPE_KWARGS_MAP.get(persistent._gsm_menu_style, dict())
+            **gsm_utils.TYPE_KWARGS_MAP.get(menu_type, dict())
         )
 
         #Reset Monika's position
