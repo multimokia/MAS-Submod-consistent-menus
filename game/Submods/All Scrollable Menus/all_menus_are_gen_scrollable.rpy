@@ -22,7 +22,7 @@ init -989 python in gsm_utils:
         store.sup_utils.SubmodUpdater(
             submod=store.mas_submod_utils.gsm_submod,
             user_name="multimokia",
-            repository_name="MAS-Util-Consistent-Menus",
+            repository_name="MAS-Submod-Consistent-Menus",
             tag_formatter=lambda x: x[x.index('_') + 1:],
             update_dir="",
             attachment_id=None,
